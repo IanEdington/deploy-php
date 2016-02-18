@@ -33,18 +33,20 @@ Suggested properties:
 	EXCLUDE - array of files to exclude from rsync. Any values in higher levels will be added to this array.
 	DELETE_FILES - TRUE or FALSE. This determins if rsync will delete files from the deployment environment when they are not in the git repo. If your EXCLUDE array is properly configured you should set this to TRUE.
 
-other:
-	VERSION_FILE?
-	TIME_LIMIT
-	BACKUP_DIR
-	COMPOSER - if this is true composer will be checked as a requirement
-	COMPOSER_OPTIONS
-	COMPOSER_HOME
-	CLEAN_UP
-	EMAIL_ON_ERROR
+other: Default Value
+	git: git
+	rsync: rsync
+	version_file?
+	time_limit
+	backup_dir
+	composer - if this is true composer will be checked as a requirement
+	composer_options
+	composer_home
+	clean_up
+	email_on_error
 
-Process
 
+Deployment Process
 
 MAKE SURE It's Secure
 	Load yaml/json into deploy-config object.

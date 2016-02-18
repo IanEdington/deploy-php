@@ -1,5 +1,7 @@
 {
   "email-on-error":"it@eyecarepd.com",
+  "git":"/home/eyecarep/bin/git",
+  "rsync":"/usr/bin/rsync",
   "exclude": [
     ".git*",
     "*.sql",
