@@ -68,6 +68,9 @@ function cascading_settings($configPart, $settings, $repository, $branch)
             foreach ($configPart as $key => $value) {
                 if (in_array($key, $validOptions)) {
                     $settings[$repository][$branch][$key] = $value;
+                    if ($key == "secret_access_token") {
+                        $settings["secrets"][] = $value;
+                    }
                 }
             }
         }
@@ -75,4 +78,24 @@ function cascading_settings($configPart, $settings, $repository, $branch)
 
     $settings = cascade_into_next_level($configPart, $settings, $repository, $branch);
     return $settings;
+}
+
+
+// Hash Function
+// If the default hash function doesn't exist in the environment then create it
+// ref: http://php.net/manual/en/function.hash-equals.php#115635
+if (!function_exists('hash_equals')) {
+    function hash_equals($str1, $str2)
+    {
+        if (strlen($str1) != strlen($str2)) {
+            return false;
+        } else {
+            $res = $str1 ^ $str2;
+            $ret = 0;
+            for ($i = strlen($res) - 1; $i >= 0; $i--) {
+                $ret |= ord($res[$i]);
+            }
+            return !$ret;
+        }
+    }
 }
