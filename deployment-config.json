@@ -7,6 +7,9 @@
     "*.sql",
     "README.md"
   ],
+  "extra-commands": [
+    "sed -i '' \"s/PDF_PAGE_ORIENTATION', 'L/PDF_PAGE_ORIENTATION', 'P/\" $TARGET/includes/vendor/tcpdf/config/tcpdf_config.php"
+  ],
   "EyeCarePD":{
     "repository": "EyeCarePD/eyecarepd",
     "staging_dir": "/home/user/git-repo",
@@ -40,26 +43,6 @@
     "test environment":{
       "branch": "%any%",
       "target_dir": "/home/user/public_staging/"
-    }
-  },
-
-  "EyeCarePD/git-deploy":{
-    "repository": "IanEdington/git-deploy",
-    "staging_dir": "/home/user/git-repo",
-    "secret_access_token": "a very secret key",
-    "exclude": [
-      "error_log",
-      "deployment-config.json"
-    ],
-    "clean_up": false,
-    "command_time_limit": "30",
-    "backup_dir": false,
-    "composer": false,
-    "composer-options": "--no-dev",
-    "composer-home": "/home/user",
-    "production environment":{
-      "branch": "master",
-      "target_dir": "/home/user/git-deploy/"
     }
   }
 }

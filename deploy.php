@@ -1,74 +1,39 @@
 <?php
 
-class CheckStructure
+function find_branch_and_repo ($arr, $repository, $branch)
 {
-	public function repository( $key, $val )
-	{
-		return true;
-	}
-	public function branch( $key, $val )
-	{
-		return true;
-	}
-	public function target_dir( $key, $val )
-	{
-		return true;
-	}
-	public function path_to_git( $key, $val )
-	{
-		return true;
-	}
-	public function path_to_rsync( $key, $val )
-	{
-		return true;
-	}
-	public function path_to_composer( $key, $val )
-	{
-		return true;
-	}
-	public function composer( $key, $val )
-	{
-		return true;
-	}
-	public function composer_options( $key, $val )
-	{
-		return true;
-	}
-	public function email_on_error( $key, $val )
-	{
-		return true;
-	}
-	public function exclude( $key, $val )
-	{
-		return true;
-	}
-	public function delete_files( $key, $val )
-	{
-		return true;
-	}
-}
-
-
-function cascading_settings ($settings, $arr, $repository, $branch){
-	global $check;
-	if ( is_array($arr)){
 	if ( array_key_exists('repository', $arr) ) {
-		$check->repository(1,1);
 		$repository = $arr['repository'];
 	}
 	if ( array_key_exists('branch', $arr) ) {
-		$check->branch(1,1);
 		$branch = $arr['branch'];
+		echo 'this is where the branch is set'.PHP_EOL;
+		echo $branch.PHP_EOL;
 	}
+	return array($repository, $branch);
+}
 
-	foreach ($arr as $key => $value) {
-		if ( !method_exists($check, $key) ){
-			$settings = cascading_settings ($settings, $value, $repository, $branch);
+function cascade_into_next_level ($arr, $settings, $repository, $branch)
+{
+	$check_arr = ["repository", "branch", "target_dir"];
+
+	if ( is_array($arr)) {
+		foreach ($arr as $key => $value) {
+			if (  !in_array($key, $check_arr) ){
+				echo 'cascade this:'.PHP_EOL;
+				echo print_r($value).PHP_EOL;
+				$settings = cascading_settings ($settings, $value, $repository, $branch);
+			}
 		}
 	}
+	return $settings;
+}
 
+function structure_settings_by_branch ($settings, $repository, $branch)
+{
 	if ( array_key_exists( $repository, $settings) ) {
-		if ( !array_key_exists( 'branch', $settings->{$repository} )) {
+		if ( array_key_exists( $branch, $settings[$repository] )) {
+		} else {
 			$settings[$repository][$branch] = array();
 		}
 	} else {
@@ -76,27 +41,37 @@ function cascading_settings ($settings, $arr, $repository, $branch){
 			$branch => array()
 		);
 	}
+	return $settings;
+}
 
-		foreach ($arr as $key => $value) {
-			if ( !method_exists($check, $key) ){
-				$settings[$repository][$branch][$key] = $value;
-			}
+function cascading_settings ($arr, $settings, $repository, $branch)
+{
+	list ($repository, $branch) = find_branch_and_repo($arr, $repository, $branch);
+	echo $repository.PHP_EOL;
+	echo $branch.PHP_EOL;
+
+	$settings = cascade_into_next_level($arr, $settings, $repository, $branch);
+
+	$settings = structure_settings_by_branch ($settings, $repository, $branch);
+
+	$check_arr = ['repository', 'branch', 'target_dir'];
+	foreach ($arr as $key => $value) {
+		if ( in_array( $key, $check_arr ) ){
+			$settings[$repository][$branch][$key] = $value;
 		}
 	}
 	return $settings;
 }
 
-$check = new CheckStructure();
-$json = file_get_contents("deployment-config.json");
+$json = file_get_contents("config.json");
 $arr = json_decode($json, true);
 $settings = array();
-$repository = 'null';
-$branch = 'null';
+$repository = 'fallback';
+$branch = 'fallback';
 
 $settings = cascading_settings ($arr, $settings, $repository, $branch);
 
-echo print_r($settings) . PHP_EOL;
-echo 'hello';
+echo print_r($settings);
 
 
 $hello = <<<EOT
