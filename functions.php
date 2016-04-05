@@ -40,7 +40,9 @@ function structure_settings_by_branch($settings, $repository, $branch)
 
 function cascading_settings($configPart, $settings, $repository, $branch)
 {
-    list ($repository, $branch) = find_branch_and_repo($configPart, $repository, $branch);
+    if (is_array($configPart)) {
+        list ($repository, $branch) = find_branch_and_repo($configPart, $repository, $branch);
+    }
 
     $settings = structure_settings_by_branch($settings, $repository, $branch);
 
@@ -62,9 +64,11 @@ function cascading_settings($configPart, $settings, $repository, $branch)
             "composer-optoins"
         ];
 
-        foreach ($configPart as $key => $value) {
-            if (in_array($key, $validOptions)) {
-                $settings[$repository][$branch][$key] = $value;
+        if (is_array($configPart)) {
+            foreach ($configPart as $key => $value) {
+                if (in_array($key, $validOptions)) {
+                    $settings[$repository][$branch][$key] = $value;
+                }
             }
         }
     }
