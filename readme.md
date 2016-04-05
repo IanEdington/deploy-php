@@ -1,3 +1,6 @@
+# Git deploy 100% php
+[![Code Climate](https://codeclimate.com/github/IanEdington/deploy-php/badges/gpa.svg)](https://codeclimate.com/github/IanEdington/deploy-php) 
+
 The idea of this project is to create a php git server that will deploy any branches qued for deployment to the correct folders.
 
 The deployment folder should be a yaml or json document called deployment-config.yaml / .json and should contain a extreamly flexible deployment structure. Usablility would probably benefit from cascading object.
