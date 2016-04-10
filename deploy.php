@@ -1,6 +1,13 @@
 <?php
 
 require_once(dirname(__FILE__) . "/functions.php");
+$headers = getallheaders();
+
+// check that it's a push event
+if ($headers['X-Github-Event'] != "push") {
+    header('HTTP/1.0 403 Forbidden');
+    die('not a push event');
+}
 
 // Load yaml/json into deploy-config object.
 $json = file_get_contents("config.json");
@@ -20,7 +27,6 @@ echo print_r($settings);
 //Check payload hash against all SECRET\_ACCESS\_TOKEN's to findout if matches one of them.
 // ref: http://isometriks.com/verify-github-webhooks-with-php
 
-$headers = getallheaders();
 $hubSignature = $headers['X-Hub-Signature'];
 
 // Split signature into algorithm and hash
