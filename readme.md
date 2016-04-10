@@ -5,15 +5,15 @@
 
 A json config file tells 100php-git-deploy where to put a specific repo. `config.php` can be as little as repo or can be much more flexible.
 
-Required properties:
+Required settings:
 ```javascript
 {
-    "repo": "", // url of repo to be deployed
+    "repository": "", // url of repo to be deployed
     "target_dir": "" // url of deployment directory
 }
 ```
 
-Other options:
+Other settings:
 ```javascript
 {
     "branch": "master", // branch to be deployed

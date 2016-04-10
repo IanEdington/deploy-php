@@ -99,3 +99,23 @@ if (!function_exists('hash_equals')) {
         }
     }
 }
+
+/**
+ * @param array $settings
+ * @param array $repo
+ * @param array $branch
+ * @return array Merged settings for branch
+ */
+function findBranchSettings($settings, $repo, $branch)
+{
+    global $default, $repoDefault, $branchDefault;
+
+    $option_used = array_merge(
+        $default,
+        $settings[$repoDefault][$branchDefault],
+        $settings[$repo][$branchDefault],
+        $settings[$repo][$branch]
+    );
+
+    return $option_used;
+};
