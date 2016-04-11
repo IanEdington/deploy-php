@@ -9,31 +9,26 @@ if ($headers['X-Github-Event'] != "push") {
     die('not a push event');
 }
 
-// Load yaml/json into deploy-config object.
-$json = file_get_contents("config.json");
-$config_file = json_decode($json, true);
-$settings = array( 'secrets'=>array() );
-$repoDefault = '@defalt-repo@';
-$branchDefault = '@default-branch@';
-
-$settings = cascading_settings($config_file, $settings, $repoDefault, $branchDefault);
+// default settings
 $default = [
     // Required
-    'repository' => '',
+    'repo' => '',
     'target_dir' => '',
 
     // Other Settings
     'branch' => 'master',
+    'repo_url' => '',
     'secret_access_token' => '',
     'git_path' => 'git', // file path to git executable
     'time_limit' => 30, //
-    'clean_up' => '',
+    'clean_up' => false,
+    'version_file' => '',
     'email_on_error' => '',
 
     // Composer Settings
     'composer' => false, // if this is true composer will be checked as a requirement
     'composer_path' => 'composer', //
-    'composer_options' => '',
+    'composer_options' => '--no-dev',
     'composer_home' => '',
 
     // backup settings
@@ -52,6 +47,15 @@ $default = [
     'rsync_delete_files' => false, // When files are deleted in rsync_staging_dir should the be deleted from target_dir?
 ];
 
+
+// Load yaml/json into deploy-config object.
+$json = file_get_contents("config.json");
+$config_file = json_decode($json, true);
+$settings = array( 'secrets'=>array() );
+$repoDefault = '@defalt-repo@';
+$branchDefault = '@default-branch@';
+
+$settings = cascading_settings($config_file, $settings, $repoDefault, $branchDefault);
 
 //MAKE SURE It's Secure
 
@@ -85,66 +89,30 @@ if ($a_secret_matches) {
 
 
 // Find out what repo & branch to use
+//get the repo and branch from the webhookData
+//check if repo and branch match a deployment config
+//yes - keep going
+//no - throw an error
+
 $webhookData = json_decode($rawWebhookData, true);
 
 $repo = $webhookData['repository']['full_name'];
 $branch = explode('/', $webhookData['ref'], 3)[2];
 
 // tease out requirments from settings file
+//Build up the options
+//based on the repo and branch determin which deployments
+//will be triggered (possibly more than one. but start with one)
 $deployments = [];
 $deployments[] = findBranchSettings($settings, $repo, $branch);
 $deployments[] = findBranchSettings($settings, $repo, '%any%');
 
-
-//Does the server have all the commands it needs?
-$binariesNeeded = ['git'];
-
-foreach ($deployments as $deployment) {
-    if ($deployment['composer'] == true) {
-        $binariesNeeded[] = $deployment['composer_path'];
-    }
-    if ($deployment['rsync'] == true) {
-        $binariesNeeded[] = $deployment['rsync_path'];
-    }
-    if ($deployment['backup'] == true) {
-        $binariesNeeded[] = $deployment['backup_tool_path'];
-    }
-}
-
-foreach ($binariesNeeded as $command) {
-    $path = trim(shell_exec('which '.$command));
-    if ($path == '') {
-        die(sprintf('- %s not available. It needs to be installed on the server for this script to work.', $command));
-    } else {
-        $version = explode("\n", shell_exec($command.' --version'));
-        printf('- %s : %s'."\n", $path, $version[0]);
-    }
-}
-
-echo "Environment OK.".PHP_EOL;
-
-echo <<<EOL
-
-=============================================
-deploying: $repo $branch
-EOL;
-
-foreach ($deployments as $deployment) {
-    echo "   to:     ".$deployment['target_dir'];
-}
-
-//MAKE SURE IT'S SETUP properly
-//get the repo and branch from the webhookData
-//check if repo and branch match a deployment config
-//yes - keep going
-//no - throw an error
-
-//Build up the options
-//based on the repo and branch determin which deployments
-//will be triggered (possibly more than one. but start with one)
+require_once("./deployment-commands.php");
 
 //Once the options are built run through each deployment script echoing output along the way.
+foreach ($deployments as $deployment) {
+    deploy($deployment);
+}
 
-// Deploy settings[$repo][$branch]
-// Deploy settings[$repo]["%any%"]
-// Deploy settings["%any%"]["%any%"]
+?>
+You WIN!!! YAY all your deployments worked!

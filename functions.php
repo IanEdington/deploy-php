@@ -46,24 +46,10 @@ function cascading_settings($configPart, $settings, $repository, $branch)
 
     $settings = structure_settings_by_branch($settings, $repository, $branch);
 
-    if (is_array($configPart)) {
-        $validOptions = [
-            "target_dir",
-            "email-on-error",
-            "git",
-            "rsync",
-            "exclude",
-            "extra-commands",
-            "repository",
-            "staging_dir",
-            "secret_access_token",
-            "clean_up",
-            "command_time_limit",
-            "backup_dir",
-            "composer",
-            "composer-optoins"
-        ];
+    global $default;
+    $validOptions = array_keys($default);
 
+    if (is_array($configPart)) {
         if (is_array($configPart)) {
             foreach ($configPart as $key => $value) {
                 if (in_array($key, $validOptions)) {
