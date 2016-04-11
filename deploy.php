@@ -27,7 +27,6 @@ $default = [
     'secret_access_token' => '',
     'git_path' => 'git', // file path to git executable
     'time_limit' => 30, //
-    'backup_dir' => '',
     'clean_up' => '',
     'email_on_error' => '',
 
@@ -36,6 +35,12 @@ $default = [
     'composer_path' => 'composer', //
     'composer_options' => '',
     'composer_home' => '',
+
+    // backup settings
+    'backup' => false,
+    'backup_dir' => '',
+    'backup_tool_path' => 'tar',
+    'backup_tool_args' => '',
 
     // rsync is useful for deploying to remote server, among other things.
     // If EXCLUDE is configured properly this works well.
@@ -88,9 +93,45 @@ $branch = explode('/', $webhookData['ref'], 3)[2];
 // tease out requirments from settings file
 $deployments = [];
 $deployments[] = findBranchSettings($settings, $repo, $branch);
+$deployments[] = findBranchSettings($settings, $repo, '%any%');
 
 
-//Does the server have everything it needs?
+//Does the server have all the commands it needs?
+$binariesNeeded = ['git'];
+
+foreach ($deployments as $deployment) {
+    if ($deployment['composer'] == true) {
+        $binariesNeeded[] = $deployment['composer_path'];
+    }
+    if ($deployment['rsync'] == true) {
+        $binariesNeeded[] = $deployment['rsync_path'];
+    }
+    if ($deployment['backup'] == true) {
+        $binariesNeeded[] = $deployment['backup_tool_path'];
+    }
+}
+
+foreach ($binariesNeeded as $command) {
+    $path = trim(shell_exec('which '.$command));
+    if ($path == '') {
+        die(sprintf('- %s not available. It needs to be installed on the server for this script to work.', $command));
+    } else {
+        $version = explode("\n", shell_exec($command.' --version'));
+        printf('- %s : %s'."\n", $path, $version[0]);
+    }
+}
+
+echo "Environment OK.".PHP_EOL;
+
+echo <<<EOL
+
+=============================================
+deploying: $repo $branch
+EOL;
+
+foreach ($deployments as $deployment) {
+    echo "   to:     ".$deployment['target_dir'];
+}
 
 //MAKE SURE IT'S SETUP properly
 //get the repo and branch from the webhookData
